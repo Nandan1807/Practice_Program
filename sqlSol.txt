@@ -1,0 +1,129 @@
+1. ———————————————List top 5 highest amount orders with Customer Name & Product Name.———————————————————
+
+SELECT TOP 5 
+    o.OrderID,
+    c.Name AS CustomerName,
+    p.ProductName,
+    o.OrderDate,
+    o.Quantity,
+    o.Price,
+    o.TotalOrderAmount,
+    o.OrderStatus
+FROM 
+    Orders o
+INNER JOIN 
+    Customers c ON o.CustomerID = c.CustomerID
+INNER JOIN 
+    Products p ON o.ProductID = p.ProductID
+ORDER BY 
+    o.TotalOrderAmount DESC;
+
+
+
+2. —————————————————————————List Products with Category which are never ordered.——————————————————————
+SELECT ProductName, Category 
+FROM Products
+WHERE ProductID NOT IN (
+    SELECT DISTINCT ProductID 
+    FROM Orders
+);
+
+OR
+
+SELECT p.ProductName, p.Category
+FROM Products p
+LEFT JOIN Orders o ON p.ProductID = o.ProductID
+WHERE o.ProductID IS NULL;
+
+
+3.——————————————————————List Category wise total orders, total ordered quantity and total order amount.———————————-
+SELECT 
+    p.Category, 
+    COUNT(o.OrderID) AS TotalOrders, 
+    SUM(o.Quantity) AS TotalOrderQuantity, 
+    SUM(o.TotalOrderAmount) AS TotalOrderAmount
+FROM 
+    Products p
+INNER JOIN 
+    Orders o ON o.ProductID = p.ProductID
+GROUP BY 
+    p.Category;
+
+4. ——————————————————————List Products with Average Price of "Computer" Category——————————————————————
+SELECT 
+    p.ProductName,
+    p.Category,
+    p.Price,
+    (SELECT AVG(Price) 
+     FROM Products 
+     WHERE Category = 'Computer') AS AvgPriceOfCategory
+FROM 
+    Products p
+WHERE 
+    p.Category = 'Computer';
+
+
+5. ——————————————————————Find Customers who ordered the same product more than once. (repeat buyers)—————————-
+
+Select Name from Customers 
+Where CustomerID IN (
+	select  o1.CustomerID from orders o1
+	inner join orders o2 on o1.OrderID != o2.OrderID and 
+						o1.CustomerID = o2.CustomerID and 
+						o1.ProductID = o2.ProductID
+)
+
+or 
+
+SELECT DISTINCT c.Name
+FROM Customers c
+WHERE c.CustomerID IN (
+    SELECT CustomerID
+    FROM Orders
+    GROUP BY CustomerID, ProductID
+    HAVING COUNT(*) > 1
+);
+more efficient 
+
+
+
+6. ——————————————————————Which Product is highest selling in terms of quantity?——————————————————————
+SELECT ProductName 
+FROM Products
+WHERE ProductID = (
+    SELECT TOP 1 ProductID 
+    FROM Orders
+    GROUP BY ProductID
+    ORDER BY SUM(Quantity) DESC
+);
+
+7. ——————————————————————Delete those orders which are Cancelled and placed before '2024-01-01'——————————————
+
+Delete from orders
+Where OrderDate < '2024-01-01' and OrderStatus  = ‘Cancelled’
+
+
+8. ——————————————————————List products whose current stock is less than current pending orders.———————————————SELECT p.ProductName
+FROM Products p
+WHERE p.StockQuantity < (
+    SELECT COALESCE(SUM(o.Quantity), 0)                                                      // if no pending orders then null handled by coalesce
+    FROM Orders o
+    WHERE o.ProductID = p.ProductID 
+      AND o.OrderStatus = 'Pending'
+    GROUP BY o.ProductID
+);
+
+
+9. ——————————————————————List Top 10 Customers with highest total order amount of Category "Mobile".———————————-
+SELECT TOP 10 c.Name, SUM(o.TotalOrderAmount) AS TotalAmount
+FROM Orders o
+INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+INNER JOIN Products p ON o.ProductID = p.ProductID
+WHERE p.Category = 'Mobile'
+GROUP BY c.Name
+ORDER BY SUM(o.TotalOrderAmount) DESC;
+
+
+10. ——————————————————————List Date wise Total Order Amount.—————————————————————————————————
+select OrderDate , SUM(TotalOrderAmount) as TotalOrderAmount from Orders
+Group by OrderDate 

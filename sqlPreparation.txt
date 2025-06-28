@@ -1,0 +1,76 @@
+1. List the total quantity ordered for each product. Show Product Name and Total Quantity.
+
+select p.ProductName, SUM(o.Quantity) as TotalQuantity from products p
+inner join orders o on o.ProductID = p.ProductID
+Group by p.ProductName
+
+2. Find customers who have never placed an order.
+
+SELECT c.CustomerName from Customers c
+LEFT JOIN orders o on o.CustomerID = c.CustomerID
+WHERE o.OrderID IS NULL
+
+3. List the top 5 products with the highest total order amount.
+
+SELECT TOP 5 p.ProductName, SUM(o.TotalOrderAmount) AS TotalAmount
+FROM Products p
+INNER JOIN Orders o ON o.ProductID = p.ProductID
+GROUP BY p.ProductName
+ORDER BY TotalAmount DESC;
+
+4. Find the average order amount per customer. Show Customer Name and Average Amount.
+
+SELECT c.Name, AVG(o.TotalOrderAmount) AS AverageOrderAmount
+FROM Customers c
+INNER JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.Name;
+
+5. List all products that have never been ordered in the 'Laptop' category.
+
+SELECT p.ProductName FROM Products p
+LEFT JOIN orders o ON P.ProductID = o.ProductID
+WHERE p.Category = 'LAPTOP' AND o.OrderID IS NULL
+
+
+6. For each customer, list the most recent order date.
+
+SELECT c.Name , Max(o.OrderDate) as recentDate from customers c
+INNER JOIN orders o on c.CustomerID = o.CustomerID
+GROUP BY c.Name
+
+7. Show each product with the number of times it was ordered (i.e., order count).
+
+SELECT p.ProductName, count(o.OrderID) AS OrderCount From products p 
+INNER JOIN orders o ON o.ProductID = p.ProductID
+GROUP BY p.ProductName
+
+8. Find the total revenue generated for each category.
+
+SELECT p.Category, SUM(o.TotalOrderAmount) AS Revenue
+FROM Products p
+INNER JOIN Orders o ON o.ProductID = p.ProductID
+GROUP BY p.Category;
+
+9. List all pending orders along with customer name and product name.
+
+SELECT 
+    c.Name,
+    p.ProductName,
+    o.OrderDate,
+    o.Quantity,
+    o.Price,
+    o.TotalOrderAmount,
+    o.OrderStatus
+    FROM Orders o
+INNER JOIN products p ON o.ProductID = p.ProductID
+INNER JOIN Customers c ON c.CustomerID = o.CustomerID
+WHERE o.OrderStatus = 'pending'
+
+10. List the customers who have placed orders for more than 3 different products.
+
+SELECT Name FROM Customers
+WHERE CustomerID IN (
+    SELECT CustomerID FROM Orders
+    GROUP BY CustomerID
+    HAVING count(DISTINCT ProductID) > 3
+)
